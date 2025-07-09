@@ -1,0 +1,291 @@
+\documentclass{cfdsc}
+\usepackage[T1]{fontenc}
+\usepackage[latin1]{inputenc}
+\usepackage{setspace}
+\usepackage{amssymb}
+
+\usepackage{multicol}
+
+%Package we add
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{graphicx}
+
+\usepackage{epsfig} %% for loading postscript figures
+\usepackage[outdir=./]{epstopdf}
+
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{lipsum} % for dummy text
+
+\usepackage{subfig}
+
+\usepackage{makecell}
+\usepackage{tabularx}
+
+\setlength{\textfloatsep}{5pt}
+
+\begin{document}
+
+
+
+\title{Uncertainty Analysis for CFD Simulations of Flow over Plate and around Foil with OpenFOAM}
+
+\author{Shanqin Jin, Heather Peng\inst{1}, \and Wei Qiu}
+
+\institute{Department of Ocean and Naval Architectural Engineering, Memorial University, \\ St. John's, NL, Canada}
+
+\email{hpeng@mun.ca}
+
+
+\begingroup
+\onecolumn{
+{\begin{flushright} \small{{Proceedings of the 28th Annual Conference of the Computational Fluid Dynamics Society of Canada}\\{CFDSC2020}\\{June 14-16, 2020, St. John's, NL, Canada}}
+\end{flushright} }}
+
+\maketitle
+
+\endgroup
+
+%\twocolumn
+
+\begin{multicols}{2}
+
+%\begin{abstract}
+%OpenFOAM, a free and open source CFD (Computational Fluid Dynamics) code, has been a promising numerical software for various fields including hydrodynamics, thermodynamics and aerodynamics in recent years. With the widely application of OpenFOAM, a rigorous verification study is essential to asses and make clear the accuracy and reliability of these numerical results.
+
+%This paper presents solution verification exercises for the flow over a plate and around NACA0012 with OpenFOAM. Five cases (flow over a flat plate with Reynolds numbers of $  10^7$ and $ 10^8 $; flow around the NACA 0012 with Reynolds number of $ 6\times10^6 $ at angles of attack of $ 0^{\circ} $, $ 4^{\circ} $ and $10^{\circ} $) were carried out. All cases were tested with several geometrically similar grid sets and two turbulence models, Spalart-Allmaras (SA) and SST $ k-\omega $, based on SIMPLE algorithm. An iterative error study was presented  before the computation of solution verification, the Least Squared Root method uncertainty estimator was applied to evaluate the uncertainty of these results. The results show that an iteration error study is required before the estimation of the discretization error, SST $ k-\omega $ model is more sensitive to grid than Spalart-Allmaras in OpenFOAM and the value of $ y^+ $ shouldn't be too small in CFD simulation.
+%\end{abstract}
+
+
+%\section*{NOMENCLATURE}
+%
+%The main body of the paper should be preceded by a listing of the important symbols and abbreviations used in the manuscript. The nomenclature should be formatted as an unnumbered section after the Abstract.
+
+\section{Introduction}
+The Computational Fluid Dynamics (CFD) is applied to a wide range of research and engineering problems, including aerodynamics, thermodynamics, ocean and naval architecture engineering and so on. It is necessary to asses and make clear the accuracy and reliability of the numerical results. The object of this paper is to do the solution verification exercises for OpenFOAM simulations and compare the uncertainty results with different estimators.
+
+Many studies have been carried out to estimate numerical uncertainties in CFD simulations. A simple algorithm, Grid Convergence Index (GCI), derived by Roache \cite{ref1} is widely used. In the work of Celik et al. \cite{ref2} and Cosner et al. \cite{ref3}, GCI method was recommended for estimating the uncertainties due to grid-spacing and time-step. To improve the quality of uncertainty estimation, a variable factory of safety according to the distance of solution from the asymptotic range was introduced in Factor of Safety method (FS) by Xing and Stern \cite{ref4}. It was applied successfully in the verification for the beam bending problem. For oscillatory converged results, the Least Squared Root method (LSR) was proposed by E{\c{c}}a and Hoekstra \cite{ref5}. This method adopted weight to increase the influence of those solutions near the extrapolated values.
+
+In this paper, the three methods were applied to estimate the uncertainties in 2D simulations of flow over plate and an foil with OpenFOAM due to grid spacing and turbulence modelling. 
+
+%This paper is organized in the following: the first section is introduction; then the procedure of uncertainty estimation is presented in the second section; the third section contains the simulation cases and the detail information about these grid groups are also described in this part; the fourth section is result, both iterative error and discretization error are presented in this section; finally, the conclusion and discussion are drawn in the last section.
+
+\section{Uncertainty Estimation}
+
+\subsection{Iteration Error Estimation}
+The iterative error is the difference between the value of flow quantity $ \phi $ at $ n^{th} $ iteration  and the exact value $ \phi_{exact} $ . When the non-linear system meets the convergence criteria, the final value, $ \phi_{final} $ , is usually considered as the exact solution.  The change between consecutive iterations is considered as a proper measure for the iterative error:
+\begin{equation}\label{eq_1}
+e_i=\phi_i^{n}-\phi_{exact}
+\end{equation}
+\begin{equation}\label{eq_2}
+e_i=\phi_i^{final-1}-\phi_i^{final}
+\end{equation}
+where $e_i$  is the iterative error, $\phi_i^{final}$  is the flow quantity in the final iteration step and $\phi_i^{final-1}$ is that at the step before the final one.
+
+However, these quantities are not reliable since the value at the last step is an estimate of the exact value \cite{ref6}. Another estimator of the iterative error uses the solution converged to machine accuracy \cite{ref7}. Based on this work, four levels of the convergence tolerance, $e_t$ , were tested in the present studies: $ 10^{-4}, 10^{-6}, 10^{-8} $ and $ 10^{-14} $. The last one corresponds to machine accuracy.
+
+The $L_\infty $ norm is also studied in the present work:
+\begin{equation}\label{eq_3}
+L_{\infty} \left( \Delta \phi \right) = max \left( \Delta \phi_i \right)   \quad 1\leq i \leq N_P
+\end{equation}
+where $N_P$ stands for the total number of nodes of a given grid and $\Delta \phi$ denotes the local change of the flow quantity $\phi$, $\Delta \phi$ is the difference between the solution and machine accuracy. Furthermore, two special norms are also examined:
+
+\begin{equation}\label{eq_4}
+L_{1} \left( \Delta \phi \right) = \frac{\sum_{i=1}^{N_P} 	\left| \Delta \phi_i \right| }{N_P}   \quad  L_{2} \left( \Delta \phi \right) = \sqrt{\frac{\sum_{i=1}^{N_P} 	\left| \Delta \phi_i \right|^2 }{N_P}} 
+\end{equation}
+
+Note that $L_1$ and $L_2$ are equal to the mean value of $\Delta \phi_i$  and to the root mean square of $\Delta \phi$ , respectively. 
+
+\subsection{Solution Verification}
+Solution verification is to estimate the numerical uncertainty, $U_{\phi}$, of a solution,  $\phi_i$ for which the exact solution, $\phi_{exact}$, is unknown. The goal is to define an interval that contains the exact solution with a $ 95\% $ confidence.
+
+\begin{equation}\label{eq_5}
+\phi_i-U_{\phi} \leq \phi_{exact} \leq \phi_i+U_{\phi}
+\end{equation}
+
+Using the generalized Richardson extrapolation \cite{ref8}, the discretization error, $\varepsilon$ can be estimated as:
+\begin{equation}\label{eq_6}
+\varepsilon \simeq \delta_{RE} =\phi_i - \phi_0 = \alpha h_i^p
+\end{equation}
+where $\phi_i$ stands for any integral of local quantity,  $\phi_0$ is the estimate of the exact solution, $\alpha$  is a constant, $h$ is the typical cell size, and $p$ is the observed order of accuracy. 
+
+
+\section{Simulation Cases}
+\subsection{Flow over Plate}
+The computational domain of the flow over a flat plate is a rectangle of length $1.5L$ and width $0.25L$. The inlet is located $0.25L$ upstream of the leading edge of the plate and the outlet is placed $0.25L$ downstream of the trailing edge of the plate. The outer boundary is located $0.25L$ away from the surface of the plate. The Cartesian coordinate system has the origin at the leading edge of the plate and the $x$ axis aligned with the plate. Figure \ref{fig:sketch_of_plate} shows the grid with $r_i=8$.
+%%%%%%%%%%%%%%figures has captions always on the bottom%%%%%%%%%%%%%%%%%%%%%%%
+\begin{figure}[H]
+\vspace{-0.1cm}   
+\setlength{\belowcaptionskip}{-0.5cm} 
+\centering{\psfig{figure=./Figures/plate.eps,width=1.0\columnwidth}}
+%\centering
+%\includegraphics[width=0.6\textwidth]{plate.eps}
+\caption{The grid of flow over a plate with $r_i=8$}
+\label{fig:sketch_of_plate}
+\end{figure}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Flow around NACA0012}
+The grid of the flow around NACA0012 is shown in Figure \ref{fig:sketch_of_NACA0012}, where $c$ is the chord of the foil. The inlet is a semicircle with $R=12c$ and the outlet is placed $13c$ downstream of the trailing edge of the foil. The external boundary is located approximately $12c$ away from the foil.
+%%%%%%%%%%%%%%figures has captions always on the bottom%%%%%%%%%%%%%%%%%%%%%%%
+\begin{figure}[H]
+\vspace{-0.1cm}   
+\setlength{\belowcaptionskip}{-0.5cm}
+\centering{\psfig{figure=./Figures/NACA0012.eps,width=1.1\columnwidth}}
+%\centering
+%\includegraphics[width=0.6\textwidth]{plate.eps}
+\caption{An example of the grid for flow around NACA0012}
+\label{fig:sketch_of_NACA0012}
+\end{figure}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Results}
+The iterative errors for flow over a plate with the Reynolds number of $10^8$ are first presented, then the results of discretization errors are discussed.
+
+\subsection{Iteration Errors}
+For $e_t=10^{-4} , 10^{-6}$ and $10^{-8}$, $L_{\infty}$, $L_{1}$ and $L_{2}$ norms of the iterative errors of the nondimensional horizontal velocity, $U_x$, were computed. The Iterative errors of the horizontal velocity with different turbulence models are presented in Figs. \ref{fig:Iterative_Error_U_X_SSTKW} and \ref{fig:Iterative_Error_U_X_SA} as a function of the grid refinement ratio.
+%%%%%%%%%%%%%%figures has captions always on the bottom%%%%%%%%%%%%%%%%%%%%%%%
+\begin{figure}[H]
+\centering{\psfig{figure=./Figures/Iterative_Error_U_X_SSTKW_For_CFD2020.eps,width=1.00\columnwidth}}
+%\centering
+%\includegraphics[width=0.6\textwidth]{plate.eps}
+\caption{Iterative error of the horizontal velocity with SST $ k-\omega $}
+\label{fig:Iterative_Error_U_X_SSTKW}
+\end{figure}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%figures has captions always on the bottom%%%%%%%%%%%%%%%%%%%%%%%
+\begin{figure}[H]
+\vspace{-0.8cm}  
+\setlength{\abovecaptionskip}{-0.2cm}   
+\setlength{\belowcaptionskip}{-1cm} 
+\centering{\psfig{figure=./Figures/Iterative_Error_U_X_SA_For_CFD2020.eps,width=1.00\columnwidth}}
+%\centering
+%\includegraphics[width=0.6\textwidth]{plate.eps}
+\caption{Iterative error of the horizontal velocity with SA}
+\label{fig:Iterative_Error_U_X_SA}
+\end{figure}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Discretization Errors}
+The discretization error can be calculated by:
+\begin{equation}\label{eq:eq_7}
+e_d=\phi_i-\phi_0
+\end{equation}
+where the exact value, $\phi_0$ , is evaluated by LSR. At the same time, the extrapolated curves can be calculated by using this uncertainty estimator and the error bars at grid ratios of $r_i$ = 1, 2, 4 and 8 are included.
+
+Figures \ref{fig:I_friction_SA} and \ref{fig:I_friction_SSTKW} present the convergence of the friction drag coefficient, $C_f $, with the grid refinement for different levels of the convergence criteria by using two turbulence models.
+
+%%%%%%%%%%%%%%figures has captions always on the bottom%%%%%%%%%%%%%%%%%%%%%%%
+\begin{figure}[H]
+\vspace{-0.4cm}  
+\setlength{\abovecaptionskip}{-0.2cm}   
+\setlength{\belowcaptionskip}{-0.5cm} 
+\centering{\psfig{figure=./Figures/Friction_drag_coefficient_For_Paper_SA.eps,width=1.0\columnwidth}}
+%\centering
+%\includegraphics[width=0.6\textwidth]{plate.eps}
+\caption{Convergence of the friction drag coefficient for different levels of the convergence criteria with the SA turbulence model}
+\label{fig:I_friction_SA}
+\end{figure}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%figures has captions always on the bottom%%%%%%%%%%%%%%%%%%%%%%%
+\begin{figure}[H]
+\vspace{-0.4cm}  
+\setlength{\abovecaptionskip}{-0.2cm}   
+\centering{\psfig{figure=./Figures/Friction_drag_coefficient_For_Paper_KWSST.eps,width=1.0\columnwidth}}
+%\centering
+%\includegraphics[width=0.6\textwidth]{plate.eps}
+\caption{Convergence of the friction drag coefficient for different levels of the convergence criteria with SST $ k-\omega $}
+\label{fig:I_friction_SSTKW}
+\end{figure}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Uncertainty results}
+As an example, the convergence of drag coefficient and corresponding uncertainty for flow around NACA0012 at angle of attack of $ 0^{\circ}$ with SA are shown in Figs. \ref{fig:Drag_coefficient_0_SA} and \ref{fig:Drag_coefficient_Uncertainty_0_SA}, respectively. 
+
+%%%%%%%%%%%%%%figures has captions always on the bottom%%%%%%%%%%%%%%%%%%%%%%%
+\begin{figure}[H]
+\vspace{-0.4cm}  
+\setlength{\abovecaptionskip}{-0.2cm}   
+\setlength{\belowcaptionskip}{-1cm}  
+\centering{\psfig{figure=./Figures/Convergence_of_drag_coefficient_0_For_CFD2020.eps,width=1.00\columnwidth}}
+%\centering
+%\includegraphics[width=0.6\textwidth]{plate.eps}
+\caption{Convergence of the drag coefficient for flow around NACA0012 at angle of attack of $ 0^{\circ}$ with SA }
+\label{fig:Drag_coefficient_0_SA}
+\end{figure}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%figures has captions always on the bottom%%%%%%%%%%%%%%%%%%%%%%%
+\begin{figure}[H]
+\vspace{-0.4cm}  
+\setlength{\abovecaptionskip}{-0.2cm}   
+ 
+\centering{\psfig{figure=./Figures/LSR_Uncertainty_of_drag_coefficient_0_For_CFD2020.eps,width=1.00\columnwidth}}
+%\centering
+%\includegraphics[width=0.6\textwidth]{plate.eps}
+\caption{Uncertainty of the drag coefficient for flow around NACA0012 at angle of attack of $ 0^{\circ}$ with SA}
+\label{fig:Drag_coefficient_Uncertainty_0_SA}
+\end{figure}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Conclusion}
+This paper presents solution verification exercises for the flow over a flat plate and flow around the NACA0012.
+
+The results show that an iteration error study is required before the estimation of the discretization error. In terms of uncertainty estimation, LSR method has higher stability than GCI method and FS method, especially for the    oscillatory converged results. When $ y^+ $ less than 1, SST $ k-\omega $ model is more sensitive to grid than Spalart-Allmaras model in OpenFOAM.
+
+%Firstly, an iteration error study is presented in this paper and the influence of the iteration error on the estimation of the discretization error was analyzed with the case, flow over a plate with Re = $ 10^8 $. Then, the Least Squared Root (LSR) uncertainty estimator was applied to evaluate the uncertainty of the results. As expected, the results convergence to the same region and the uncertainty decreasing with the grid refinement for same set grids.
+
+\begin{thebibliography}{9}
+
+\bibitem{ref1}
+P. J. Roache.
+\newblock Verification and validation in computational science and engineering.
+\newblock {\em Hermosa Albuquerque, NM}, \textbf{895}, 1998.
+
+\bibitem{ref2}
+I.B. Celik, U. Ghia, P.J. Roache, C.J. Freitas, H. Coleman, P.E. Raad, I. Celik, C. Freitas, H.P. Coleman.
+\newblock Procedure for estimation and reporting of uncertainty due to discretization in CFD applications.
+\newblock {\em Journal of Fluids Engineering}, \textbf{130}(7):078001, 2008.
+
+\bibitem{ref3}
+R. Cosner, B. Oberkampf, C. Rumsey, C. Rahaim, T. Shih.
+\newblock AIAA Committee on standards for computational fluid dynamics: status and plans.
+\newblock In {\em 44th AIAA Aerospace Sciences Meeting and Exhibit}, \textbf{889}, 2006.
+
+\bibitem{ref4}
+T. Xing, F. Stern.
+\newblock Factors of safety for {R}ichardson extrapolation.
+\newblock {\em Journal of Fluids Engineering}, \textbf{132}(6), 2010.
+
+\bibitem{ref5}
+L. E{\c{c}}a, M. Hoekstra.
+\newblock An uncertainty estimation exercise with the finite-difference and finite-volume versions of parnassos.
+\newblock In {\em Workshop on CFD Uncertainty Analysis}, \textbf{6}, 2004.
+
+
+\bibitem{ref6}
+L. E{\c{c}}a, M. Hoekstra.
+\newblock On the influence of the iterative error in the numerical uncertainty of ship viscous flow calculations.
+\newblock In {\em 26th Symposium on Naval Hydrodynamics}, \textbf{}17--22, 2006.
+
+
+\bibitem{ref7}
+L. E{\c{c}}a, G.N.V.B. Vaz, M. Hoekstra.
+\newblock A verification and validation exercise for the flow over a backward facing step.
+\newblock {\em Proceedings of the ECCOMAS CFD}, \textbf{} 2010.
+
+
+\bibitem{ref8}
+L.F. Richardson.
+\newblock IX. The approximate arithmetical solution by finite differences of physical problems involving differential equations, with an application to the stresses in a masonry dam.
+\newblock {\em Philosophical Transactions of the Royal Society of London. Series A, Containing Papers of a Mathematical or Physical Character}, \textbf{210}(459-470):307--357, 1911.
+
+
+
+
+\end{thebibliography}
+
+
+\end{multicols}
+
+\end{document}
